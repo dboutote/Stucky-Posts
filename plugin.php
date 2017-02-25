@@ -192,8 +192,3 @@ function stucky_is_sticky( $post_id = 0 ) {
 
 	return false;
 }
-
-
-
-
-
