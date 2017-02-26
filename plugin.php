@@ -35,8 +35,11 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 function stucky_post_submitbox_misc_actions( $post ){
 
-	$post_type_object = get_post_type_object( $post->post_type );
-	$can_publish = current_user_can( $post_type_object->cap->publish_posts );
+	do_action( 'pre_stucky_post_submitbox_misc_actions', $post );
+
+	$ptype       = get_post_type_object( $post->post_type );
+	$can_publish = current_user_can( $ptype->cap->publish_posts );
+	$can_publish = apply_filters( 'stucky_can_publish', $can_publish, $post );
 
 	if ( $can_publish ) : ?>
 		<div class="misc-pub-section stucky misc-pub-stucky">
@@ -45,6 +48,7 @@ function stucky_post_submitbox_misc_actions( $post ){
 	<?php endif;
 }
 add_action( 'post_submitbox_misc_actions', 'stucky_post_submitbox_misc_actions' );
+
 
 /**
  *  Stick or unstick post
@@ -61,15 +65,21 @@ function stucky_save_post( $post_id, $post, $update ){
 
 	do_action( 'pre_stucky_save_post', $post_id, $post, $update );
 
-	$ptype = get_post_type_object( $post->post_type );
+	$ptype       = get_post_type_object( $post->post_type );
+	$can_publish = ( current_user_can( $ptype->cap->edit_others_posts ) && current_user_can( $ptype->cap->publish_posts ) ) ?
+		true :
+		false ;
+	$can_publish = apply_filters( 'stucky_can_publish', $can_publish, $post );
 
-	if ( current_user_can( $ptype->cap->edit_others_posts ) && current_user_can( $ptype->cap->publish_posts ) ) {
+	if ( $can_publish ) {
 		if ( ! empty( $_POST['stucky'] ) ){
 			stucky_stick_post( $post_id );
 		} else {
 			stucky_unstick_post( $post_id );
 		}
 	};
+
+	do_action( 'post_stucky_save_post', $post_id, $post, $update );
 
 	return $post_id;
 
@@ -189,6 +199,23 @@ function stucky_is_sticky( $post_id = 0 ) {
 		return true;
 	}
 
-
 	return false;
 }
+
+
+/**
+ *  Add post display states used in the posts list table.
+ *  
+ *  @since 1.0.0
+ *  
+ *  @param array   $post_states An array of post display states.
+ *  @param WP_Post $post        The current post object.
+ */
+function stucky_display_post_states( $post_states, $post ){
+	
+	if( stucky_is_sticky( $post->ID ) ){
+		$post_states['stucky'] = __( 'Stucky' );
+	}
+	return $post_states;
+}
+add_filter( 'display_post_states', 'stucky_display_post_states', 0, 2 );
