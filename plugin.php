@@ -63,8 +63,22 @@ add_action( 'post_submitbox_misc_actions', 'stucky_post_submitbox_misc_actions' 
  */
 function stucky_save_post( $post_id, $post, $update ){
 
+	if( ! get_post( $post_id ) ){
+		return $post_id;
+	}
+
+	if( 'auto-draft' === $post->post_status || 'revision' == $post->post_type ){
+		return $post_id;
+	}
+
+	/* skip auto-running jobs */
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ){ return $post_id; }
+	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ){ return $post_id; }
+	if ( defined( 'DOING_CRON' ) && DOING_CRON ){ return $post_id; }
+
 	do_action( 'pre_stucky_save_post', $post_id, $post, $update );
 
+	/* check if user can edit */
 	$ptype       = get_post_type_object( $post->post_type );
 	$can_publish = ( current_user_can( $ptype->cap->edit_others_posts ) && current_user_can( $ptype->cap->publish_posts ) ) ?
 		true :
@@ -205,14 +219,14 @@ function stucky_is_sticky( $post_id = 0 ) {
 
 /**
  *  Add post display states used in the posts list table.
- *  
+ *
  *  @since 1.0.0
- *  
+ *
  *  @param array   $post_states An array of post display states.
  *  @param WP_Post $post        The current post object.
  */
 function stucky_display_post_states( $post_states, $post ){
-	
+
 	if( stucky_is_sticky( $post->ID ) ){
 		$post_states['stucky'] = __( 'Stucky' );
 	}
