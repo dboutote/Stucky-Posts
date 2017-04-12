@@ -43,7 +43,7 @@ function stucky_post_submitbox_misc_actions( $post ){
 
 	if ( $can_publish ) : ?>
 		<div class="misc-pub-section stucky misc-pub-stucky">
-			<input id="stucky" name="stucky" type="checkbox" value="stucky" <?php checked( stucky_is_sticky( $post->ID ) ); ?> /> <label for="stucky" class="selectit"><?php _e( 'Feature this content on the front page' ); ?></label><br />
+			<input id="stucky" name="stucky" type="checkbox" value="stucky" <?php checked( stucky_is_sticky( $post->ID ) ); ?> /> <label for="stucky" class="selectit"><?php _e( 'Feature this content on the front page' ); ?></label><br /><br />
 		</div>
 	<?php endif;
 }
